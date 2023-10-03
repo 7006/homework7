@@ -1,0 +1,5 @@
+{
+    "action": "insert",
+    "key": "some_key",
+    "value": [1, 2, 3]
+}
