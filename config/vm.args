@@ -1,0 +1,6 @@
+-sname cache_web
+
+-setcookie cache_web_cookie
+
++K true
++A30
