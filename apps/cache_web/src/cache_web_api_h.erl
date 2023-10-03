@@ -17,18 +17,15 @@ allowed_methods(Req, State) ->
     {[<<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
-    {[{{<<"application">>, <<"json">>, '*'}, handle_request_true}], Req, State}.
+    {[{{<<"application">>, <<"json">>, '*'}, handle_request_stop}], Req, State}.
 
 handle_request_true(Req, State) ->
-    Req1 = cowboy_req:set_resp_header(<<"content-type">>, <<"application/json">>, Req),
-    Req2 = cowboy_req:set_resp_body(<<"[]">>, Req1),
-    {true, Req2, State}.
+    {ok, Data, Req1} = cowboy_req:read_body(Req),
+    Req2 = cowboy_req:set_resp_header(<<"content-type">>, <<"application/json">>, Req1),
+    Req3 = cowboy_req:set_resp_body(Data, Req2),
+    {true, Req3, State}.
 
 handle_request_stop(Req, State) ->
-    Req2 = cowboy_req:reply(
-        200,
-        #{<<"content-type">> => <<"application/json">>},
-        <<"[]">>,
-        Req
-    ),
+    {ok, Data, Req1} = cowboy_req:read_body(Req),
+    Req2 = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Data, Req1),
     {stop, Req2, State}.
