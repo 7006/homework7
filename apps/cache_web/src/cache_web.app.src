@@ -1,6 +1,6 @@
 {application, cache_web, [
-    {description, "Cache web API"},
-    {vsn, git},
+    {description, "An OTP application"},
+    {vsn, "0.1.0"},
     {registered, []},
     {mod, {cache_web_app, []}},
     {applications, [
@@ -10,4 +10,7 @@
     ]},
     {env, []},
     {modules, []},
+
+    {licenses, ["Apache-2.0"]},
+    {links, []}
 ]}.
