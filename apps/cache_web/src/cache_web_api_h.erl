@@ -34,16 +34,16 @@ next(has_req_body, Req, State) ->
             next(error, empty_body, Req, State)
     end;
 next(read_req_body, Req, State) ->
-    {ok, ReqBody, Req1} = cowboy_req:read_body(Req),
-    next(cowboy, true, ReqBody, Req1, State).
+    {ok, Body, Req1} = cowboy_req:read_body(Req),
+    next(cowboy, true, Body, Req1, State).
 
 next(error, empty_body = Code, Req, State) ->
     Status = 400,
-    RespBody = jsone:encode(#{
+    Body = jsone:encode(#{
         code => Code,
         status => Status
     }),
-    next(cowboy, stop, Status, RespBody, Req, State).
+    next(cowboy, stop, Status, Body, Req, State).
 
 next(cowboy, true, Body, Req, State) ->
     Req1 = cowboy_req:set_resp_headers(response_headers(), Req),
