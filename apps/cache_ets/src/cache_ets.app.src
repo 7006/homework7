@@ -1,0 +1,16 @@
+{application, cache_ets, [
+    {description, "ETS-based cache with auto-cleaning of obsolete objects"},
+    {vsn, git},
+    {registered, []},
+    {mod, {cache_ets_app, []}},
+    {applications, [kernel, stdlib]},
+    {env, [
+        %
+        % The cache deletes obsolete objects every minute
+        %
+        % Defined in milliseconds
+        %
+        {cleanup_interval, 60_000}
+    ]},
+    {modules, []}
+]}.
