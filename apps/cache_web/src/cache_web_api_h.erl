@@ -6,7 +6,7 @@
 -export([allowed_methods/2]).
 -export([content_types_accepted/2]).
 
-%% interval
+%% internal
 -export([enter/2]).
 -export([has_req_body/2]).
 -export([read_req_body/2]).
