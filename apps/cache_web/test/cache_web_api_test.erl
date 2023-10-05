@@ -25,8 +25,12 @@ cache_web_api_test_() ->
                 fun lookup_by_date_req/0
             },
             {
-                "Send Empty body",
+                "Send empty body",
                 fun send_empty_body/0
+            },
+            {
+                "Send bad json body",
+                fun send_bad_json_body/0
             }
         ]
     }.
@@ -106,6 +110,17 @@ send_empty_body() ->
             {status, 400},
             {content_type, <<"application/json">>},
             {json, ".code", <<"empty_body">>},
+            {json, ".status", 400}
+        ]
+    }).
+
+send_bad_json_body() ->
+    post(#{
+        body => <<"[broken : json, ">>,
+        expect => [
+            {status, 400},
+            {content_type, <<"application/json">>},
+            {json, ".code", <<"bad_json">>},
             {json, ".status", 400}
         ]
     }).
