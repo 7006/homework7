@@ -49,6 +49,7 @@ cleanup(_) ->
 echo_req() ->
     post(#{
         body => #{
+            <<"action">> => <<"echo">>,
             <<"a">> => #{
                 <<"b">> => #{
                     <<"c">> => 1
@@ -72,7 +73,7 @@ insert_req() ->
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".action", <<"insert">>}
+            {json, ".result", <<"ok">>}
         ]
     }).
 
@@ -85,7 +86,7 @@ lookup_req() ->
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".action", <<"lookup">>}
+            {json, ".result", [1, 2, 3]}
         ]
     }).
 
@@ -99,7 +100,12 @@ lookup_by_date_req() ->
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".action", <<"lookup_by_date">>}
+            {json, ".result", [
+                #{
+                    <<"key">> => <<"some_key">>,
+                    <<"value">> => [1, 2, 3]
+                }
+            ]}
         ]
     }).
 
