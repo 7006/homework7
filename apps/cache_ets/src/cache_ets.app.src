@@ -1,5 +1,5 @@
 {application, cache_ets, [
-    {description, "ETS-based cache with auto-cleaning of obsolete objects"},
+    {description, "ETS-based cache with auto-cleanup"},
     {vsn, git},
     {registered, []},
     {mod, {cache_ets_app, []}},
