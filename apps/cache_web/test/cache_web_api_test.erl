@@ -23,6 +23,10 @@ cache_web_api_test_() ->
             {
                 "Lookup objects by date range",
                 fun lookup_by_date_req/0
+            },
+            {
+                "Send Empty body",
+                fun send_empty_body/0
             }
         ]
     }.
@@ -92,6 +96,17 @@ lookup_by_date_req() ->
             {status, 200},
             {content_type, <<"application/json">>},
             {json, ".action", <<"lookup_by_date">>}
+        ]
+    }).
+
+send_empty_body() ->
+    post(#{
+        body => null,
+        expect => [
+            {status, 400},
+            {content_type, <<"application/json">>},
+            {json, ".code", <<"empty_body">>},
+            {json, ".status", 400}
         ]
     }).
 
