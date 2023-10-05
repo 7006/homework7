@@ -8,7 +8,9 @@
         stdlib,
         cowboy
     ]},
-    {env, []},
+    {env, [
+        {cache_name, cache_web_bucket}
+    ]},
     {modules, []},
 
     {licenses, ["Apache-2.0"]},

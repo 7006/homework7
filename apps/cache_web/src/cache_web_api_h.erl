@@ -11,7 +11,8 @@
 -export([has_req_body/2]).
 -export([read_req_body/2]).
 -export([parse_req_body/3]).
--export([call_action/3]).
+-export([get_cache_name/3]).
+-export([route_action/4]).
 -export([encode_action_data/3]).
 -export([handle_req_error/3]).
 -export([handle_req_error/4]).
@@ -56,16 +57,24 @@ read_req_body(Req, State) ->
     end.
 
 parse_req_body(Body, Req, State) ->
-    try
-        DataIn = jsone:decode(Body),
-        call_action(DataIn, Req, State)
+    try jsone:decode(Body) of
+        DataIn ->
+            get_cache_name(DataIn, Req, State)
     catch
         error:Error:_ ->
             handle_req_error(bad_json, Error, Req, State)
     end.
 
-call_action(DataIn, Req, State) ->
-    case cache_web_api_action:call(DataIn) of
+get_cache_name(DataIn, Req, State) ->
+    case application:get_env(cache_web, cache_name) of
+        {ok, undefined} ->
+            {error, bad_cache_name};
+        {ok, Name} ->
+            route_action(DataIn, Name, Req, State)
+    end.
+
+route_action(DataIn, Name, Req, State) ->
+    case cache_web_api_actions:route_action(Name, DataIn) of
         {ok, DataOut} ->
             encode_action_data(DataOut, Req, State);
         {error, Error} ->
