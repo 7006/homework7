@@ -37,12 +37,16 @@ next(read_req_body, Req, State) ->
     {ok, Body, Req1} = cowboy_req:read_body(Req),
     next(cowboy, true, Body, Req1, State).
 
-next(error, empty_body = Code, Req, State) ->
-    Status = 400,
-    Body = jsone:encode(#{
+next(error, Code, Req, State) ->
+    Status =
+        case Code of
+            _ -> 400
+        end,
+    Error = #{
         code => Code,
         status => Status
-    }),
+    },
+    Body = jsone:encode(Error),
     next(cowboy, stop, Status, Body, Req, State).
 
 next(cowboy, true, Body, Req, State) ->
