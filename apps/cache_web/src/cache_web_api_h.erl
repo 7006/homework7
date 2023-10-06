@@ -12,8 +12,8 @@
 -export([read_req_body/2]).
 -export([parse_req_body/3]).
 -export([get_cache_name/3]).
--export([route_action/4]).
--export([encode_action_data/3]).
+-export([run_action/4]).
+-export([encode_action_data_out/3]).
 -export([handle_req_error/3]).
 -export([handle_req_error/4]).
 -export([reply/3]).
@@ -74,17 +74,17 @@ parse_req_body(Body, Req, State) ->
 get_cache_name(DataIn, Req, State) ->
     {ok, WorkerOpts} = application:get_env(cache_web, cache_worker_opts),
     Name = proplists:get_value(table_name, WorkerOpts),
-    route_action(DataIn, Name, Req, State).
+    run_action(DataIn, Name, Req, State).
 
-route_action(DataIn, Name, Req, State) ->
-    case cache_web_api_actions:route_action(Name, DataIn) of
+run_action(DataIn, Name, Req, State) ->
+    case cache_web_api_actions:run_action(Name, DataIn) of
         {ok, DataOut} ->
-            encode_action_data(DataOut, Req, State);
+            encode_action_data_out(DataOut, Req, State);
         {error, Error} ->
-            handle_req_error(bad_action, Error, Req, State)
+            handle_req_error(bad_run_action, Error, Req, State)
     end.
 
-encode_action_data(DataOut, Req, State) ->
+encode_action_data_out(DataOut, Req, State) ->
     try jsone:encode(DataOut) of
         Body ->
             reply(Body, Req, State)
