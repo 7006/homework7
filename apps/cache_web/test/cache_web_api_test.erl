@@ -10,43 +10,38 @@ cache_web_api_test_() ->
         [
             {
                 "Echo",
-                fun echo_req/0
+                fun echo/0
             },
             {
-                "Insert object",
-                fun insert_req/0
+                "Empty",
+                fun empty/0
             },
             {
-                "Lookup object by key",
-                fun lookup_req/0
+                "Bad json",
+                fun bad_json/0
             },
             {
-                "Lookup objects by date range",
-                fun lookup_by_date_req/0
+                "Insert and lookup",
+                fun insert_and_lookup/0
             },
             {
-                "Send empty body",
-                fun send_empty_body/0
-            },
-            {
-                "Send bad json body",
-                fun send_bad_json_body/0
+                "Lookup by date",
+                fun lookup_by_date/0
             }
         ]
     }.
 
 setup() ->
-    application:set_env(cache_web, port, 80),
     application:ensure_all_started(cache_web),
     application:ensure_all_started(efrisby),
     ok.
 
 cleanup(_) ->
-    application:stop(cache_web),
     application:stop(efrisby),
+    application:stop(cache_web),
     ok.
 
-echo_req() ->
+echo() ->
     post(#{
         body => #{
             <<"action">> => <<"echo">>,
@@ -63,34 +58,35 @@ echo_req() ->
         ]
     }).
 
-insert_req() ->
+insert_and_lookup() ->
+    Key = <<"foobar">>,
+    Value = [1, 2, 3],
+
     post(#{
         body => #{
             <<"action">> => <<"insert">>,
-            <<"key">> => <<"some_key">>,
-            <<"value">> => [1, 2, 3]
+            <<"key">> => Key,
+            <<"value">> => Value
         },
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
             {json, ".result", <<"ok">>}
         ]
-    }).
-
-lookup_req() ->
+    }),
     post(#{
         body => #{
             <<"action">> => <<"lookup">>,
-            <<"key">> => <<"some_key">>
+            <<"key">> => Key
         },
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".result", [1, 2, 3]}
+            {json, ".result", Value}
         ]
     }).
 
-lookup_by_date_req() ->
+lookup_by_date() ->
     post(#{
         body => #{
             <<"action">> => <<"lookup_by_date">>,
@@ -109,7 +105,7 @@ lookup_by_date_req() ->
         ]
     }).
 
-send_empty_body() ->
+empty() ->
     post(#{
         body => null,
         expect => [
@@ -120,7 +116,7 @@ send_empty_body() ->
         ]
     }).
 
-send_bad_json_body() ->
+bad_json() ->
     post(#{
         body => <<"[broken : json, ">>,
         expect => [
@@ -133,7 +129,7 @@ send_bad_json_body() ->
 
 post(#{body := Body, expect := Expect}) ->
     Opts = [
-        {base_url, "http://localhost/api/cache_server"},
+        {base_url, "http://localhost"},
         {headers, [
             {content_type, <<"application/json">>}
         ]}
