@@ -6,7 +6,8 @@
     {applications, [
         kernel,
         stdlib,
-        cowboy
+        cowboy,
+        jsone
     ]},
     {env, [
         {cache_name, cache_web_bucket}
