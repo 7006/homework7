@@ -9,16 +9,16 @@ cache_web_api_test_() ->
         fun cleanup/1,
         [
             {
-                "Echo",
-                fun echo/0
-            },
-            {
                 "Empty",
                 fun empty/0
             },
             {
                 "Bad json",
                 fun bad_json/0
+            },
+            {
+                "Echo",
+                fun echo/0
             },
             {
                 "Insert and lookup",
@@ -40,6 +40,28 @@ cleanup(_) ->
     application:stop(efrisby),
     application:stop(cache_web),
     ok.
+
+empty() ->
+    post(#{
+        body => null,
+        expect => [
+            {status, 400},
+            {content_type, <<"application/json">>},
+            {json, ".code", <<"empty_body">>},
+            {json, ".status", 400}
+        ]
+    }).
+
+bad_json() ->
+    post(#{
+        body => <<"[broken : json, ">>,
+        expect => [
+            {status, 400},
+            {content_type, <<"application/json">>},
+            {json, ".code", <<"bad_json">>},
+            {json, ".status", 400}
+        ]
+    }).
 
 echo() ->
     post(#{
@@ -102,28 +124,6 @@ lookup_by_date() ->
                     <<"value">> => [1, 2, 3]
                 }
             ]}
-        ]
-    }).
-
-empty() ->
-    post(#{
-        body => null,
-        expect => [
-            {status, 400},
-            {content_type, <<"application/json">>},
-            {json, ".code", <<"empty_body">>},
-            {json, ".status", 400}
-        ]
-    }).
-
-bad_json() ->
-    post(#{
-        body => <<"[broken : json, ">>,
-        expect => [
-            {status, 400},
-            {content_type, <<"application/json">>},
-            {json, ".code", <<"bad_json">>},
-            {json, ".status", 400}
         ]
     }).
 
