@@ -1,5 +1,5 @@
 {application, cache_web, [
-    {description, "ETS-based cache web api"},
+    {description, "ETS cache web api"},
     {vsn, git},
     {registered, []},
     {mod, {cache_web_app, []}},

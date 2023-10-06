@@ -1,12 +1,12 @@
 {application, cache_ets, [
-    {description, "ETS-based auto-cleaning cache"},
+    {description, "ETS cache"},
     {vsn, git},
     {registered, []},
     {mod, {cache_ets_app, []}},
     {applications, [kernel, stdlib]},
     {env, [
         %
-        % The cache deletes obsolete objects every minute
+        % The cache deletes expired objects every minute
         %
         % Defined in milliseconds
         %
