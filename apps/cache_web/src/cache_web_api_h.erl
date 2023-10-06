@@ -85,9 +85,9 @@ route_action(DataIn, Name, Req, State) ->
     end.
 
 encode_action_data(DataOut, Req, State) ->
-    try
-        Body = jsone:encode(DataOut),
-        reply(Body, Req, State)
+    try jsone:encode(DataOut) of
+        Body ->
+            reply(Body, Req, State)
     catch
         error:Error:_ ->
             handle_req_error(bad_action_data_out, Error, Req, State)
