@@ -31,7 +31,7 @@ start_cache_worker(Opts) ->
             true ->
                 proplists:get_value(table_name, Opts);
             false ->
-                error(badarg, table_name)
+                error(badopt, {table_name, Opts})
         end,
 
     CleanupInterval =
@@ -43,7 +43,7 @@ start_cache_worker(Opts) ->
                     {ok, AppDefaultCleanupInterval} ->
                         AppDefaultCleanupInterval;
                     undefined ->
-                        error(badarg, cleanup_interval)
+                        error(badopt, {cleanup_interval, Opts})
                 end
         end,
 
