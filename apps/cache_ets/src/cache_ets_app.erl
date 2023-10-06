@@ -2,7 +2,8 @@
 
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([start/2]).
+-export([stop/1]).
 
 start(_, _) ->
     cache_ets_sup:start_link().
