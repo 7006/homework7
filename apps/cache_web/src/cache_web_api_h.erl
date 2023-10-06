@@ -72,12 +72,9 @@ parse_req_body(Body, Req, State) ->
     end.
 
 get_cache_name(DataIn, Req, State) ->
-    case application:get_env(cache_web, cache_name) of
-        {ok, undefined} ->
-            {error, bad_cache_name};
-        {ok, Name} ->
-            route_action(DataIn, Name, Req, State)
-    end.
+    {ok, WorkerOpts} = application:get_env(cache_web, cache_worker_opts),
+    Name = proplists:get_value(table_name, WorkerOpts),
+    route_action(DataIn, Name, Req, State).
 
 route_action(DataIn, Name, Req, State) ->
     case cache_web_api_actions:route_action(Name, DataIn) of

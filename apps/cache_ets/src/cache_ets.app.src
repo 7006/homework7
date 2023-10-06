@@ -4,6 +4,7 @@
     {registered, []},
     {mod, {cache_ets_app, []}},
     {applications, [kernel, stdlib]},
+    {start_phases, []},
     {env, [
         %
         % The cache deletes expired objects every minute

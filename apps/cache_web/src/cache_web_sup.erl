@@ -14,5 +14,11 @@ init([]) ->
         intensity => 0,
         period => 1
     },
-    ChildSpecs = [],
+    ChildSpecs = [
+        #{
+            id => cache_ets_sup,
+            start => {cache_ets_sup, start_link, []},
+            type => supervisor
+        }
+    ],
     {ok, {SupFlags, ChildSpecs}}.

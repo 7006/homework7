@@ -2,15 +2,24 @@
     {description, "ETS cache web api"},
     {vsn, git},
     {registered, []},
-    {mod, {cache_web_app, []}},
+    {mod, {application_starter, [cache_web_app, []]}},
     {applications, [
         kernel,
         stdlib,
         cowboy,
         jsone
     ]},
+    {included_applications, [
+        cache_ets
+    ]},
+    {start_phases, [
+        {start_cowboy_listener, []},
+        {start_cache_worker, []}
+    ]},
     {env, [
-        {cache_name, cache_web_bucket}
+        {cache_worker_opts, [
+            {table_name, cache_web}
+        ]}
     ]},
     {modules, []}
 ]}.

@@ -2,25 +2,49 @@
 
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([start/2]).
+-export([start_phase/3]).
+-export([stop/1]).
+
+-define(LISTENER_NAME, ?MODULE).
 
 start(_, _) ->
-    start_cowboy_listener(),
     cache_web_sup:start_link().
 
-stop(_) ->
-    stop_cowboy_listener().
+start_phase(start_cowboy_listener, _, _) ->
+    Port = application:get_env(cache_web, port, 80),
+    TransportOpts = [
+        {port, Port}
+    ],
 
-start_cowboy_listener() ->
-    {ok, Port} = application:get_env(cache_web, port),
-
+    BaseUrl = application:get_env(cache_web, base_url, "/"),
     Dispatch = cowboy_router:compile([
         {'_', [
-            {"/api/cache_server", cache_web_api_h, []}
+            {BaseUrl, cache_web_api_h, []}
         ]}
     ]),
+    ProtocolOpts = #{
+        env => #{
+            dispatch => Dispatch
+        }
+    },
 
-    {ok, _} = cowboy:start_clear(?MODULE, [{port, Port}], #{env => #{dispatch => Dispatch}}).
+    case cowboy:start_clear(?LISTENER_NAME, TransportOpts, ProtocolOpts) of
+        {error, Reason} ->
+            {error, Reason};
+        {ok, _} ->
+            ok
+    end;
+start_phase(start_cache_worker, _, _) ->
+    {ok, WorkerOpts} = application:get_env(cache_web, cache_worker_opts),
+    case cache_ets:start_cache_worker(WorkerOpts) of
+        {error, Reason} ->
+            {error, Reason};
+        {ok, _} ->
+            ok;
+        {ok, _, _} ->
+            ok
+    end.
 
-stop_cowboy_listener() ->
-    ok = cowboy:stop_listener(?MODULE).
+stop(_) ->
+    ok = cowboy:stop_listener(?LISTENER_NAME).
