@@ -38,7 +38,13 @@ content_types_accepted(Req, State) ->
 
 %% internal
 enter(Req, State) ->
-    has_req_body(Req, State).
+    try has_req_body(Req, State) of
+        R ->
+            R
+    catch
+        error:E:ST ->
+            handle_req_error(top_catch, {E, ST}, Req, State)
+    end.
 
 has_req_body(Req, State) ->
     case cowboy_req:has_body(Req) of
