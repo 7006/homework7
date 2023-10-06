@@ -58,4 +58,3 @@ start_cache_worker(Opts) ->
 
 stop_cache_worker(Pid) ->
     supervisor:terminate_child(?MODULE, Pid).
-
