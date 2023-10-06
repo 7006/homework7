@@ -5,8 +5,8 @@
 -export([start/2, stop/1]).
 
 start(_, _) ->
-    cache_web_sup:start_link(),
-    start_cowboy_listener().
+    start_cowboy_listener(),
+    cache_web_sup:start_link().
 
 stop(_) ->
     stop_cowboy_listener().
