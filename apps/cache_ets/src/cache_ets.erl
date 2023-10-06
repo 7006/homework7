@@ -1,20 +1,24 @@
 -module(cache_ets).
 
--export([create/1]).
+-export([start_cache_worker/1, stop_cache_worker/1]).
 -export([insert/3, insert/4]).
 -export([lookup/2]).
+-export([lookup_by_date/3]).
 
-create(Tab) ->
-    {ok, _} = cache_ets_sup:start_cache_cleaner(Tab),
-    ok.
+start_cache_worker(Opts) ->
+    cache_ets_sup:start_cache_worker(Opts).
 
-insert(Tab, Key, Val) ->
-    cache_ets_lib:insert(Tab, Key, Val),
-    ok.
+stop_cache_worker(Pid) ->
+    cache_ets_sup:stop_cache_worker(Pid).
 
-insert(Tab, Key, Val, Ttl) ->
-    cache_ets_lib:insert(Tab, Key, Val, Ttl),
-    ok.
+insert(TableName, Key, Val) ->
+    cache_ets_lib:insert(TableName, Key, Val).
 
-lookup(Tab, Key) ->
-    cache_ets_lib:lookup(Tab, Key).
+insert(TableName, Key, Val, Ttl) ->
+    cache_ets_lib:insert(TableName, Key, Val, Ttl).
+
+lookup(TableName, Key) ->
+    cache_ets_lib:lookup(TableName, Key).
+
+lookup_by_date(TableName, From, To) ->
+    cache_ets_lib:lookup_by_date(TableName, From, To).

@@ -1,110 +1,103 @@
 -module(cache_ets_SUITE).
 
 -export([all/0]).
+-export([init_per_suite/1, end_per_suite/1]).
 -export([init_per_testcase/2, end_per_testcase/2]).
 
--export([
-    test_config_cleanup_interval_option/1,
-    test_config_options/1,
-    test_create_one_cache/1,
-    test_create_many_caches/1,
-    test_insert_and_lookup/1,
-    test_lookup_unknown_key/1,
-    test_auto_cleaning/1,
-    test_initial_stats/1,
-    test_stats/1
-]).
+-export([insert_and_lookup/1]).
+-export([lookup_non_existent/1]).
+-export([lookup_expired/1]).
+-export([initial_stats/1]).
+-export([running_stats/1]).
 
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
     [
-        test_config_cleanup_interval_option,
-        test_config_options,
-        test_create_one_cache,
-        test_create_many_caches,
-        test_insert_and_lookup,
-        test_lookup_unknown_key,
-        test_auto_cleaning,
-        test_initial_stats,
-        test_stats
+        insert_and_lookup,
+        lookup_non_existent,
+        lookup_expired,
+        initial_stats,
+        running_stats
     ].
 
 -define(one_second, 1_000).
 -define(two_second, 2_000).
--define(one_minute, 60_000).
+-define(ten_second, 10_000).
 
-init_per_testcase(test_auto_cleaning, Config) ->
-    ok = application:start(cache_ets),
-    ok = application:set_env(cache_ets, cleanup_interval, ?one_second),
-    Config;
+init_per_suite(Config) ->
+    application:start(cache_ets),
+    Config.
+
+end_per_suite(_) ->
+    application:stop(cache_ets).
+
+init_per_testcase(lookup_expired, Config) ->
+    {ok, Pid} =
+        cache_ets:start_cache_worker([
+            {table_name, my_cache},
+            {cleanup_interval, ?two_second}
+        ]),
+    [{pid, Pid} | Config];
+init_per_testcase(running_stats, Config) ->
+    {ok, Pid} =
+        cache_ets:start_cache_worker([
+            {table_name, my_cache},
+            {cleanup_interval, ?ten_second}
+        ]),
+    [{pid, Pid} | Config];
 init_per_testcase(_, Config) ->
-    ok = application:start(cache_ets),
-    Config.
+    {ok, Pid} =
+        cache_ets:start_cache_worker([
+            {table_name, my_cache}
+        ]),
+    [{pid, Pid} | Config].
 
-end_per_testcase(test_auto_cleaning, Config) ->
-    ok = application:set_env(cache_ets, cleanup_interval, ?one_minute),
-    ok = application:stop(cache_ets),
-    Config;
 end_per_testcase(_, Config) ->
-    ok = application:stop(cache_ets),
-    Config.
+    Pid = ?config(pid, Config),
+    cache_ets:stop_cache_worker(Pid).
 
-test_config_cleanup_interval_option(_) ->
-    ?one_minute = cache_ets_config:get_option_value(cleanup_interval).
-
-test_config_options(_) ->
-    Opts = cache_ets_config:get_options(),
-    true = maps:is_key(cleanup_interval, Opts).
-
-test_create_one_cache(_) ->
-    ok = cache_ets:create(my_cache).
-
-test_create_many_caches(_) ->
-    ok = cache_ets:create(my_cache1),
-    ok = cache_ets:create(my_cache2),
-    ok = cache_ets:create(my_cache3).
-
-test_insert_and_lookup(_) ->
-    ok = cache_ets:create(my_cache),
-    ok = cache_ets:insert(my_cache, k1, v1),
-    ok = cache_ets:insert(my_cache, k2, v2),
+insert_and_lookup(_) ->
+    cache_ets:insert(my_cache, k1, v1),
+    cache_ets:insert(my_cache, k2, v2),
     v1 = cache_ets:lookup(my_cache, k1),
     v2 = cache_ets:lookup(my_cache, k2).
 
-test_lookup_unknown_key(_) ->
-    ok = cache_ets:create(my_cache),
-    undefined = cache_ets:lookup(my_cache, unknown_key).
+lookup_non_existent(_) ->
+    cache_ets:insert(my_cache, k, v),
+    undefined = cache_ets:lookup(my_cache, x).
 
-test_auto_cleaning(_) ->
-    ok = cache_ets:create(my_cache),
-    ok = cache_ets:insert(my_cache, k, v, 1),
-
+lookup_expired(_) ->
+    cache_ets:insert(my_cache, k, v, 1),
     timer:sleep(?two_second),
-
     undefined = cache_ets:lookup(my_cache, k).
 
-test_initial_stats(_) ->
-    ok = cache_ets:create(my_cache),
+initial_stats(Config) ->
+    Pid = ?config(pid, Config),
+    #{run_at := 0, total_runs := 0} = cache_ets_worker:stats(Pid).
 
-    Pid = ets:info(my_cache, owner),
-    Stats = cache_ets_cleaner:stats(Pid),
+running_stats(Config) ->
+    Pid = ?config(pid, Config),
 
-    0 = maps:get(run_at, Stats),
-    0 = maps:get(total_runs, Stats).
+    timer:sleep(?one_second),
+    Pid ! cleanup,
+    #{
+        run_at := {
+            {Year, Month, Day},
+            {Hour, Minute, Second1}
+        },
+        total_runs := TotalRuns1
+    } = cache_ets_worker:stats(Pid),
 
-test_stats(_) ->
-    ok = cache_ets:create(my_cache),
-
-    Stats = fun() ->
-        timer:sleep(?one_second),
-        Pid = ets:info(my_cache, owner),
-        Pid ! cleanup,
-        cache_ets_cleaner:stats(Pid)
-    end,
-
-    #{run_at := {{Year, Month, Day}, {Hour, Minute, Second1}}, total_runs := TotalRuns1} = Stats(),
-    #{run_at := {{Year, Month, Day}, {Hour, Minute, Second2}}, total_runs := TotalRuns2} = Stats(),
+    timer:sleep(?one_second),
+    Pid ! cleanup,
+    #{
+        run_at := {
+            {Year, Month, Day},
+            {Hour, Minute, Second2}
+        },
+        total_runs := TotalRuns2
+    } = cache_ets_worker:stats(Pid),
 
     true = Second2 > Second1,
     1 = TotalRuns2 - TotalRuns1.

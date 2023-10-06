@@ -1,9 +1,9 @@
--module(cache_ets_cleaner).
+-module(cache_ets_worker).
 
 -behaviour(gen_server).
 
--export([start/2]).
--export([start_link/2]).
+-export([start/1]).
+-export([start_link/1]).
 -export([stop/1]).
 -export([stats/1]).
 
@@ -14,7 +14,7 @@
 -export([terminate/2]).
 
 -record(state, {
-    tab,
+    table_name,
     cleanup_interval,
     cleanup_timer_ref,
     stats
@@ -22,11 +22,11 @@
 
 -define(now_utc, calendar:now_to_universal_time(erlang:timestamp())).
 
-start(Opts, Tab) ->
-    gen_server:start(?MODULE, [Opts, Tab], []).
+start(Opts) ->
+    gen_server:start(?MODULE, [Opts], []).
 
-start_link(Opts, Tab) ->
-    gen_server:start_link(?MODULE, [Opts, Tab], []).
+start_link(Opts) ->
+    gen_server:start_link(?MODULE, Opts, []).
 
 stop(Pid) ->
     gen_server:stop(Pid).
@@ -34,10 +34,10 @@ stop(Pid) ->
 stats(Pid) ->
     gen_server:call(Pid, stats).
 
-init([Opts, Tab]) ->
+init(Opts) ->
     S = #state{},
     S1 = init_stats(S),
-    S2 = create_table(Tab, S1),
+    S2 = create_table(Opts, S1),
     S3 = schedule_table_cleanup_at_init(Opts, S2),
     {ok, S3}.
 
@@ -62,21 +62,26 @@ handle_info(_, S) ->
     {noreply, S}.
 
 %% internal
-create_table(Tab, S) ->
-    ets:new(Tab, [set, public, named_table]),
-    S#state{tab = Tab}.
+create_table(Opts, S) ->
+    TableName = proplists:get_value(table_name, Opts),
+    ets:new(TableName, [set, public, named_table]),
+    S#state{table_name = TableName}.
 
 cleanup_table(S) ->
-    _ = cache_ets_lib:delete_obsolete(S#state.tab).
+    _ = cache_ets_lib:delete_obsolete(S#state.table_name).
 
-schedule_table_cleanup_at_init(#{cleanup_interval := I}, S) ->
-    Ref = erlang:send_after(I, self(), cleanup),
-    S#state{cleanup_interval = I, cleanup_timer_ref = Ref}.
+schedule_table_cleanup_at_init(Opts, S) ->
+    CleanupInterval = proplists:get_value(cleanup_interval, Opts),
+    CleanupTimerRef = erlang:send_after(CleanupInterval, self(), cleanup),
+    S#state{
+        cleanup_interval = CleanupInterval,
+        cleanup_timer_ref = CleanupTimerRef
+    }.
 
 schedule_table_cleanup_at_info(S) ->
     _ = erlang:cancel_timer(S#state.cleanup_timer_ref),
-    Ref = erlang:send_after(S#state.cleanup_interval, self(), cleanup),
-    S#state{cleanup_timer_ref = Ref}.
+    CleanupTimerRef = erlang:send_after(S#state.cleanup_interval, self(), cleanup),
+    S#state{cleanup_timer_ref = CleanupTimerRef}.
 
 cancel_table_cleanup_at_terminate(S) ->
     _ = erlang:cancel_timer(S#state.cleanup_timer_ref).

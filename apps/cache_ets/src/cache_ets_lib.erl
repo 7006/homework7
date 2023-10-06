@@ -4,6 +4,7 @@
 
 -export([insert/3, insert/4, insert/5]).
 -export([lookup/2, lookup/3]).
+-export([lookup_by_date/3]).
 -export([delete_obsolete/1, delete_obsolete/2]).
 
 -define(now, calendar:datetime_to_gregorian_seconds(calendar:universal_time())).
@@ -32,6 +33,14 @@ lookup(Tab, Key, Now) ->
         [] ->
             undefined
     end.
+
+lookup_by_date(_Tab, _From, _To) ->
+    [
+        #{
+            <<"key">> => <<"some_key">>,
+            <<"value">> => [1, 2, 3]
+        }
+    ].
 
 delete_obsolete(Tab) ->
     delete_obsolete(Tab, ?now).

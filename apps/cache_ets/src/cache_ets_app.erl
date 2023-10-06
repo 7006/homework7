@@ -5,8 +5,7 @@
 -export([start/2, stop/1]).
 
 start(_, _) ->
-    Opts = cache_ets_config:get_options(),
-    cache_ets_sup:start_link(Opts).
+    cache_ets_sup:start_link().
 
 stop(_) ->
     ok.
