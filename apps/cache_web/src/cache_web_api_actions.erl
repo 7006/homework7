@@ -37,28 +37,23 @@ apply_action(Action, Args) ->
             {error, Error}
     end.
 
-insert(_Name, _Key, _Value) ->
-    R = #{
+insert(Name, Key, Value) ->
+    cache_ets:insert(Name, Key, Value),
+    {ok, #{
         <<"result">> => <<"ok">>
-    },
-    {ok, R}.
+    }}.
 
-lookup(_Name, _Key) ->
-    R = #{
-        <<"result">> => [1, 2, 3]
-    },
-    {ok, R}.
+lookup(Name, Key) ->
+    Result = cache_ets:lookup(Name, Key),
+    {ok, #{
+        <<"result">> => Result
+    }}.
 
-lookup_by_date(_Name, _From, _To) ->
-    R = #{
-        <<"result">> => [
-            #{
-                <<"key">> => <<"some_key">>,
-                <<"value">> => [1, 2, 3]
-            }
-        ]
-    },
-    {ok, R}.
+lookup_by_date(Name, From, To) ->
+    Result = cache_ets:lookup_by_date(Name, From, To),
+    {ok, #{
+        <<"result">> => Result
+    }}.
 
 echo(Name, Echo) ->
     R = maps:merge(#{cache_name => Name}, Echo),
