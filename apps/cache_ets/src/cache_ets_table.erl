@@ -7,6 +7,7 @@
 -export([lookup_by_date/3]).
 -export([delete_expired/1, delete_expired/2]).
 
+-define(seconds(DateTime), calendar:datetime_to_gregorian_seconds(DateTime)).
 -define(now, calendar:datetime_to_gregorian_seconds(calendar:universal_time())).
 
 insert(Tab, Key, Val) ->
@@ -31,13 +32,25 @@ lookup(Tab, Key, Now) ->
             Val
     end.
 
-lookup_by_date(_Tab, _From, _To) ->
-    [
-        #{
-            <<"key">> => <<"some_key">>,
-            <<"value">> => [1, 2, 3]
-        }
-    ].
+lookup_by_date(Tab, FromDateTime, ToDateTime) ->
+    lookup_by_date(Tab, FromDateTime, ToDateTime, ?now).
+
+lookup_by_date(Tab, FromDateTime, ToDateTime, Now) ->
+    From = ?seconds(FromDateTime),
+    To = ?seconds(ToDateTime),
+    MatchSpec = ets:fun2ms(
+        fun(
+            {
+                Key,
+                Val,
+                CreatedAt,
+                ExpiresAt
+            }
+        ) when From =< CreatedAt, CreatedAt =< To, ExpiresAt >= Now ->
+            {Key, Val}
+        end
+    ),
+    ets:select(Tab, MatchSpec).
 
 delete_expired(Tab) ->
     delete_expired(Tab, ?now).

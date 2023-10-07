@@ -118,12 +118,7 @@ lookup_by_date() ->
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".result", [
-                #{
-                    <<"key">> => <<"some_key">>,
-                    <<"value">> => [1, 2, 3]
-                }
-            ]}
+            {json, ".result", []}
         ]
     }).
 

@@ -37,7 +37,9 @@ lookup(Name, Key) ->
     }}.
 
 lookup_by_date(Name, From, To) ->
-    Result = cache_ets:lookup_by_date(Name, From, To),
+    FromDateTime = cache_web_converters:simple_to_datetime(From),
+    ToDateTime = cache_web_converters:simple_to_datetime(To),
+    Result = cache_ets:lookup_by_date(Name, FromDateTime, ToDateTime),
     {ok, #{
         <<"result">> => Result
     }}.
