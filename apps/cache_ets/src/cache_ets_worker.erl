@@ -2,7 +2,6 @@
 
 -behaviour(gen_server).
 
--export([start/1]).
 -export([start_link/1]).
 -export([stop/1]).
 -export([stats/1]).
@@ -21,9 +20,6 @@
 }).
 
 -define(now_utc, calendar:now_to_universal_time(erlang:timestamp())).
-
-start(Opts) ->
-    gen_server:start(?MODULE, [Opts], []).
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
