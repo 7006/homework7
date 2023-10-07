@@ -47,7 +47,7 @@ lookup_by_date(Tab, FromDateTime, ToDateTime, Now) ->
                 ExpiresAt
             }
         ) when From =< CreatedAt, CreatedAt =< To, ExpiresAt >= Now ->
-            {Key, Val}
+            #{key => Key, value => Val}
         end
     ),
     ets:select(Tab, MatchSpec).

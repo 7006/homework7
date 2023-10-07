@@ -21,16 +21,20 @@ cache_web_api_test_() ->
                 fun echo/0
             },
             {
-                "Insert and lookup",
-                fun insert_and_lookup/0
+                "Insert",
+                fun insert/0
+            },
+            {
+                "Lookup",
+                fun lookup/0
             },
             {
                 "Lookup by date in 2015",
                 fun lookup_by_date_in_2015/0
             },
             {
-                "Insert and lookup by date today",
-                fun insert_and_lookup_by_date_today/0
+                "Lookup by date today",
+                fun lookup_by_date_today/0
             }
         ]
     }.
@@ -84,31 +88,30 @@ echo() ->
         ]
     }).
 
-insert_and_lookup() ->
-    Key = <<"foobar">>,
-    Value = [1, 2, 3],
-
+insert() ->
     post(#{
         body => #{
             <<"action">> => <<"insert">>,
-            <<"key">> => Key,
-            <<"value">> => Value
+            <<"key">> => <<"foobar">>,
+            <<"value">> => [1, 2, 3]
         },
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
             {json, ".result", <<"ok">>}
         ]
-    }),
+    }).
+
+lookup() ->
     post(#{
         body => #{
             <<"action">> => <<"lookup">>,
-            <<"key">> => Key
+            <<"key">> => <<"foobar">>
         },
         expect => [
             {status, 200},
             {content_type, <<"application/json">>},
-            {json, ".result", Value}
+            {json, ".result", [1, 2, 3]}
         ]
     }).
 
@@ -126,29 +129,16 @@ lookup_by_date_in_2015() ->
         ]
     }).
 
-insert_and_lookup_by_date_today() ->
-    Key = <<"k">>,
-    Value = <<"v">>,
+lookup_by_date_today() ->
     Now = calendar:universal_time(),
     OneMinuteLater = begin
         {{Year, Month, Day}, {Hour, Minute, Second}} = Now,
         {{Year, Month, Day}, {Hour, Minute + 1, Second}}
     end,
+
     From = cache_web_converters:datetime_to_simple(Now),
     To = cache_web_converters:datetime_to_simple(OneMinuteLater),
 
-    post(#{
-        body => #{
-            <<"action">> => <<"insert">>,
-            <<"key">> => Key,
-            <<"value">> => Value
-        },
-        expect => [
-            {status, 200},
-            {content_type, <<"application/json">>},
-            {json, ".result", <<"ok">>}
-        ]
-    }),
     post(#{
         body => #{
             <<"action">> => <<"lookup_by_date">>,
@@ -159,7 +149,7 @@ insert_and_lookup_by_date_today() ->
             {status, 200},
             {content_type, <<"application/json">>},
             {json, ".result", [
-                {Key, Value}
+                #{<<"key">> => <<"foobar">>, <<"value">> => [1, 2, 3]}
             ]}
         ]
     }).
