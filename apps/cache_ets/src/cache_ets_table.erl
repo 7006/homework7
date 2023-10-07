@@ -43,5 +43,16 @@ delete_expired(Tab) ->
     delete_expired(Tab, ?now).
 
 delete_expired(Tab, Now) ->
-    MatchSpec = ets:fun2ms(fun({_, _, _, ExpiresAt}) when ExpiresAt < Now -> true end),
+    MatchSpec = ets:fun2ms(
+        fun(
+            {
+                Key,
+                Val,
+                CreatedAt,
+                ExpiresAt
+            }
+        ) when ExpiresAt < Now ->
+            true
+        end
+    ),
     ets:select_delete(Tab, MatchSpec).
