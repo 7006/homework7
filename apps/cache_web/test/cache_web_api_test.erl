@@ -25,8 +25,12 @@ cache_web_api_test_() ->
                 fun insert_and_lookup/0
             },
             {
-                "Lookup by date",
-                fun lookup_by_date/0
+                "Lookup by date in 2015",
+                fun lookup_by_date_in_2015/0
+            },
+            {
+                "Insert and lookup by date today",
+                fun insert_and_lookup_by_date_today/0
             }
         ]
     }.
@@ -108,7 +112,7 @@ insert_and_lookup() ->
         ]
     }).
 
-lookup_by_date() ->
+lookup_by_date_in_2015() ->
     post(#{
         body => #{
             <<"action">> => <<"lookup_by_date">>,
@@ -119,6 +123,44 @@ lookup_by_date() ->
             {status, 200},
             {content_type, <<"application/json">>},
             {json, ".result", []}
+        ]
+    }).
+
+insert_and_lookup_by_date_today() ->
+    Key = <<"k">>,
+    Value = <<"v">>,
+    Now = calendar:universal_time(),
+    OneMinuteLater = begin
+        {{Year, Month, Day}, {Hour, Minute, Second}} = Now,
+        {{Year, Month, Day}, {Hour, Minute + 1, Second}}
+    end,
+    From = cache_web_converters:datetime_to_simple(Now),
+    To = cache_web_converters:datetime_to_simple(OneMinuteLater),
+
+    post(#{
+        body => #{
+            <<"action">> => <<"insert">>,
+            <<"key">> => Key,
+            <<"value">> => Value
+        },
+        expect => [
+            {status, 200},
+            {content_type, <<"application/json">>},
+            {json, ".result", <<"ok">>}
+        ]
+    }),
+    post(#{
+        body => #{
+            <<"action">> => <<"lookup_by_date">>,
+            <<"date_from">> => From,
+            <<"date_to">> => To
+        },
+        expect => [
+            {status, 200},
+            {content_type, <<"application/json">>},
+            {json, ".result", [
+                {Key, Value}
+            ]}
         ]
     }).
 
