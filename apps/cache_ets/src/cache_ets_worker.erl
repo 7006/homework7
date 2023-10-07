@@ -19,8 +19,6 @@
     stats
 }).
 
--define(now_utc, calendar:now_to_universal_time(erlang:timestamp())).
-
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
@@ -90,7 +88,7 @@ init_stats(S) ->
     S#state{stats = Stats}.
 
 update_stats(S) ->
-    RunAt = ?now_utc,
+    RunAt = cache_ets_time_lib:utc(now),
     TotalRuns = maps:get(total_runs, S#state.stats),
     Stats = #{
         run_at => RunAt,

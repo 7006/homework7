@@ -7,20 +7,24 @@
 -export([lookup_by_date/3]).
 -export([delete_expired/1, delete_expired/2]).
 
--define(seconds(DateTime), calendar:datetime_to_gregorian_seconds(DateTime)).
--define(now, calendar:datetime_to_gregorian_seconds(calendar:universal_time())).
-
 insert(Tab, Key, Val) ->
-    insert(Tab, Key, Val, ?now, inf).
+    Now = cache_ets_time_lib:seconds(now),
+    CreatedAt = Now,
+    ExpiresAt = inf,
+    insert(Tab, Key, Val, CreatedAt, ExpiresAt).
 
 insert(Tab, Key, Val, Ttl) when is_integer(Ttl), Ttl > 0 ->
-    insert(Tab, Key, Val, ?now, ?now + Ttl).
+    Now = cache_ets_time_lib:seconds(now),
+    CreatedAt = Now,
+    ExpiresAt = Now + Ttl,
+    insert(Tab, Key, Val, CreatedAt, ExpiresAt).
 
 insert(Tab, Key, Val, CreatedAt, ExpiresAt) ->
     true = ets:insert(Tab, {Key, Val, CreatedAt, ExpiresAt}).
 
 lookup(Tab, Key) ->
-    lookup(Tab, Key, ?now).
+    Now = cache_ets_time_lib:seconds(now),
+    lookup(Tab, Key, Now).
 
 lookup(Tab, Key, Now) ->
     case ets:lookup(Tab, Key) of
@@ -33,11 +37,12 @@ lookup(Tab, Key, Now) ->
     end.
 
 lookup_by_date(Tab, FromDateTime, ToDateTime) ->
-    lookup_by_date(Tab, FromDateTime, ToDateTime, ?now).
+    Now = cache_ets_time_lib:seconds(now),
+    lookup_by_date(Tab, FromDateTime, ToDateTime, Now).
 
 lookup_by_date(Tab, FromDateTime, ToDateTime, Now) ->
-    From = ?seconds(FromDateTime),
-    To = ?seconds(ToDateTime),
+    From = cache_ets_time_lib:seconds(FromDateTime),
+    To = cache_ets_time_lib:seconds(ToDateTime),
     MatchSpec = ets:fun2ms(
         fun(
             {
@@ -53,7 +58,8 @@ lookup_by_date(Tab, FromDateTime, ToDateTime, Now) ->
     ets:select(Tab, MatchSpec).
 
 delete_expired(Tab) ->
-    delete_expired(Tab, ?now).
+    Now = cache_ets_time_lib:seconds(now),
+    delete_expired(Tab, Now).
 
 delete_expired(Tab, Now) ->
     MatchSpec = ets:fun2ms(
