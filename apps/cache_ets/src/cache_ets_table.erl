@@ -5,7 +5,7 @@
 -export([insert/3, insert/4, insert/5]).
 -export([lookup/2, lookup/3]).
 -export([lookup_by_date/3]).
--export([delete_obsolete/1, delete_obsolete/2]).
+-export([delete_expired/1, delete_expired/2]).
 
 -define(now, calendar:datetime_to_gregorian_seconds(calendar:universal_time())).
 
@@ -42,9 +42,9 @@ lookup_by_date(_Tab, _From, _To) ->
         }
     ].
 
-delete_obsolete(Tab) ->
-    delete_obsolete(Tab, ?now).
+delete_expired(Tab) ->
+    delete_expired(Tab, ?now).
 
-delete_obsolete(Tab, Now) ->
+delete_expired(Tab, Now) ->
     MatchSpec = ets:fun2ms(fun({_, _, ExpiresAt}) when ExpiresAt < Now -> true end),
     ets:select_delete(Tab, MatchSpec).
