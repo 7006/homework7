@@ -10,15 +10,12 @@
 -define(now, calendar:datetime_to_gregorian_seconds(calendar:universal_time())).
 
 insert(Tab, Key, Val) ->
-    CreatedAt = ?now,
-    true = ets:insert(Tab, {Key, Val, CreatedAt}).
+    insert(Tab, Key, Val, ?now, inf).
 
 insert(Tab, Key, Val, Ttl) when is_integer(Ttl), Ttl > 0 ->
-    insert(Tab, Key, Val, Ttl, ?now).
+    insert(Tab, Key, Val, ?now, ?now + Ttl).
 
-insert(Tab, Key, Val, Ttl, Now) ->
-    CreatedAt = ?now,
-    ExpiresAt = Now + Ttl,
+insert(Tab, Key, Val, CreatedAt, ExpiresAt) ->
     true = ets:insert(Tab, {Key, Val, CreatedAt, ExpiresAt}).
 
 lookup(Tab, Key) ->
@@ -26,14 +23,12 @@ lookup(Tab, Key) ->
 
 lookup(Tab, Key, Now) ->
     case ets:lookup(Tab, Key) of
-        [{_, Val, _} | _] ->
-            Val;
-        [{_, Val, _, ExpiresAt} | _] when Now =< ExpiresAt ->
-            Val;
+        [] ->
+            undefined;
         [{_, _, _, ExpiresAt} | _] when ExpiresAt < Now ->
             undefined;
-        [] ->
-            undefined
+        [{_, Val, _, _} | _] ->
+            Val
     end.
 
 lookup_by_date(_Tab, _From, _To) ->
