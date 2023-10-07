@@ -1,4 +1,4 @@
--module(cache_ets_lib).
+-module(cache_ets_table).
 
 -include_lib("stdlib/include/ms_transform.hrl").
 

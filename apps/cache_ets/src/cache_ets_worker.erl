@@ -68,7 +68,7 @@ create_table(Opts, S) ->
     S#state{table_name = TableName}.
 
 cleanup_table(S) ->
-    _ = cache_ets_lib:delete_obsolete(S#state.table_name).
+    _ = cache_ets_table:delete_obsolete(S#state.table_name).
 
 schedule_table_cleanup_at_init(Opts, S) ->
     CleanupInterval = proplists:get_value(cleanup_interval, Opts),

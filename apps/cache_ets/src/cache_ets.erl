@@ -12,13 +12,13 @@ stop_cache_worker(Pid) ->
     cache_ets_sup:stop_cache_worker(Pid).
 
 insert(TableName, Key, Val) ->
-    cache_ets_lib:insert(TableName, Key, Val).
+    cache_ets_table:insert(TableName, Key, Val).
 
 insert(TableName, Key, Val, Ttl) ->
-    cache_ets_lib:insert(TableName, Key, Val, Ttl).
+    cache_ets_table:insert(TableName, Key, Val, Ttl).
 
 lookup(TableName, Key) ->
-    cache_ets_lib:lookup(TableName, Key).
+    cache_ets_table:lookup(TableName, Key).
 
 lookup_by_date(TableName, From, To) ->
-    cache_ets_lib:lookup_by_date(TableName, From, To).
+    cache_ets_table:lookup_by_date(TableName, From, To).
