@@ -2,13 +2,13 @@
 
 -export([simple_to_datetime/1]).
 
-simple_to_datetime(Bin) when is_binary(Bin) ->
-    Parsed = ec_date:parse(binary:bin_to_list(Bin)),
-    case valid_datetime(Parsed) of
+simple_to_datetime(Simple) when is_binary(Simple) ->
+    DateTime = ec_date:parse(binary:bin_to_list(Simple)),
+    case valid_datetime(DateTime) of
         false ->
-            error(bad_simple_to_datetime, [{binary, Bin}, {parsed, Parsed}]);
+            error(bad_simple_to_datetime, [{simple, Simple}, {datetime, DateTime}]);
         true ->
-            Parsed
+            DateTime
     end.
 
 valid_datetime({Date, Time}) ->
