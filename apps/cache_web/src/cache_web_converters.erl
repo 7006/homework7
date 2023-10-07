@@ -1,6 +1,17 @@
 -module(cache_web_converters).
 
+-export([datetime_to_simple/1]).
 -export([simple_to_datetime/1]).
+
+-define(simple_format, "Y/n/j H:i:s").
+
+datetime_to_simple(DateTime) ->
+    case valid_datetime(DateTime) of
+        false ->
+            error(invalid_datetime_to_simple, [{datetime, DateTime}]);
+        true ->
+            binary:list_to_bin(ec_date:format(?simple_format, DateTime))
+    end.
 
 simple_to_datetime(Simple) when is_binary(Simple) ->
     DateTime = ec_date:parse(binary:bin_to_list(Simple)),
