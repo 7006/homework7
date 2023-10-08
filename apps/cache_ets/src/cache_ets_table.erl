@@ -52,10 +52,22 @@ lookup_by_date(Tab, FromDateTime, ToDateTime, Now) ->
                 ExpiresAt
             }
         ) when From =< CreatedAt, CreatedAt =< To, ExpiresAt >= Now ->
-            #{key => Key, value => Val}
+            {Key, Val}
         end
     ),
-    ets:select(Tab, MatchSpec).
+
+    %% On Erlang/OTP 24 I've got this error
+    %% "the language element map (in body) cannot be translated into match_spec"
+    %% but on Erlang/OTP 25 I can use maps in body of the match spec function
+    lists:map(
+        fun({Key, Value}) ->
+            #{
+                key => Key,
+                value => Value
+            }
+        end,
+        ets:select(Tab, MatchSpec)
+    ).
 
 delete_expired(Tab) ->
     Now = cache_ets_time_lib:seconds(now),
