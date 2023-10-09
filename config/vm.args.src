@@ -1,0 +1,6 @@
+-sname ${APP_NAME:-cache_web}
+
+-setcookie ${ERLANG_COOKIE:-cache_web_cookie}
+
++K true
++A30

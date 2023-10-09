@@ -1,0 +1,12 @@
+[
+    {cache_web, [
+        {port, ${PORT:-8080}},
+        {base_url, "/api/cache_server"},
+        {cache_worker_opts, [
+            {table_name, api_cache_server}
+        ]}
+    ]},
+    {cache_ets, [
+        {cleanup_interval, 60_000}
+    ]}
+].

@@ -1,0 +1,1 @@
+web: bin/{{release_name}}-{{release_version}} foreground
