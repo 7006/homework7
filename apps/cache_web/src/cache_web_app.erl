@@ -20,6 +20,7 @@ start_phase(start_cowboy_listener, _, _) ->
     BaseUrl = application:get_env(cache_web, base_url, "/"),
     Dispatch = cowboy_router:compile([
         {'_', [
+            {"/", readyz_h, []},
             {BaseUrl, cache_web_api_h, []}
         ]}
     ]),
